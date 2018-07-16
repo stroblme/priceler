@@ -11,7 +11,7 @@ from utils import databaseHandler as dbH
 
 
 
-POLLING=60*30	#every 30 minutes
+POLLING=5	#every 30 minutes
 
 APITOKEN='508854334:AAGUyoIsXZNoYshyEx7jSBFJuDzKM1d87SY'
 
@@ -87,7 +87,35 @@ def delRequest(bot, update, args, chat_data):
 
 	except (IndexError, ValueError):
 		update.message.reply_text('Usage: /del <url>')
-	
+
+#--------------------------------------------------------------------------------------------
+# show list of all Requests in stored for current user
+#--------------------------------------------------------------------------------------------	
+def showRequests(bot, update, chat_data):
+    try:
+        userRequest={'userId':job.context}
+        getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
+        output="UserId:\t"+str(job.context)+"\n"
+        itemIt=0
+        for getResArray in getRes['data']:                              #iterate through the users url to check if update needed
+            updateRes=dbH.runOperation('update',arrayToDict(getResArray))
+            if(updateRes['result']==-1):
+                break
+            itemIt=itemIt+1
+            output=output+"Item:\t"+str(itemIt)
+            url=updateRes['data']['userRequest']['url']
+            output=output+"\tURL:\t"+str(url)+"\n"
+            dateAdded=updateRes['data']['userRequest']['dateAdded']
+            output=output+"\tDate Addded:\t"+str(dateAdded)+"\n"
+            latestPrice=updateRes['data']['userRequest']['latestPrice']
+            output=output+"\tLatest Price:\t"+str(latestPrice)+"\n"
+            cheapestPrice=updateRes['data']['userRequest']['cheapestPrice']
+            output=output+"\tCheapes Price:\t"+str(cheapestPrice)+"\n"
+
+        bot.send_message(job.context, text=output)
+    except (IndexError, ValueError):
+        update.message.reply_text('Usage: /show <url>')
+
 #--------------------------------------------------------------------------------------------
 # stops the Timer, i.e. the user has quitted
 #--------------------------------------------------------------------------------------------
@@ -106,8 +134,12 @@ def stopTimer(bot, update, args, chat_data):
 # displays the help
 #--------------------------------------------------------------------------------------------
 def help(bot, update):
-	"""Send a message when the command /help is issued."""
-	update.message.reply_text('Help!')
+    helpText="Priceler helps you to get the best price on amazon\n"
+    helpText=helpText+"\t/add URL/tInput the url to the item priceler should track\n"
+    helpText=helpText+"\t/del URL/tNo need to keep track? Delete unnecessary urls!\n"
+    helpText=helpText+"\t/show/tShows all your added urls\n"
+    helpText=helpText+"\t/start\tStart the notification service to get informed when the price has dropped"
+    update.message.reply_text(helpText)
     # TODO: Implement
 
 
@@ -126,46 +158,49 @@ def error(bot, update, error):
 # Main entry point
 #--------------------------------------------------------------------------------------------
 def main():
-	"""Start the bot."""
-	dbH.runOperation('open', None)
-	
-	# Create the EventHandler and pass it your bot's token.
-	updater = Updater(APITOKEN)
+    """Start the bot."""
+    dbH.runOperation('open', None)
 
-	# Get the dispatcher to register handlers
-	dp = updater.dispatcher
+    # Create the EventHandler and pass it your bot's token.
+    updater = Updater(APITOKEN)
 
-	# on different commands - answer in Telegram
-	# dp.add_handler(CommandHandler("start", start))
-	dp.add_handler(CommandHandler("start", 
-									set_timer,
-									pass_job_queue=1,
-									pass_chat_data=1))
-	dp.add_handler(CommandHandler("add", addRequest, 
-									pass_args=1, 
-									pass_chat_data=1))
-	dp.add_handler(CommandHandler("del", 
-									delRequest, 
-									pass_chat_data=1))
-	dp.add_handler(CommandHandler("stop", 
-									stopTimer, 
-									pass_chat_data=1))
-	dp.add_handler(CommandHandler("help", help))
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
 
-	# on noncommand i.e message - echo the message on Telegram
-	
+    # on different commands - answer in Telegram
+    # dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("start", 
+								    set_timer,
+								    pass_job_queue=1,
+								    pass_chat_data=1))
+    dp.add_handler(CommandHandler("add", addRequest, 
+								    pass_args=1, 
+								    pass_chat_data=1))
+    dp.add_handler(CommandHandler("del", 
+								    delRequest, 
+								    pass_chat_data=1))
+    dp.add_handler(CommandHandler("show", 
+								    showRequests, 
+								    pass_chat_data=1))
+    dp.add_handler(CommandHandler("stop", 
+								    stopTimer, 
+								    pass_chat_data=1))
+    dp.add_handler(CommandHandler("help", help))
 
-	# log all errors
-	dp.add_error_handler(error)
+    # on noncommand i.e message - echo the message on Telegram
 
-	# Start the Bot
-	updater.start_polling()
 
-	# Run the bot until you press Ctrl-C or the process receives SIGINT,
-	# SIGTERM or SIGABRT. This should be used most of the time, since
-	# start_polling() is non-blocking and will stop the bot gracefully.
-	updater.idle()
+    # log all errors
+    dp.add_error_handler(error)
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
 
 
 if __name__ == '__main__':
-	main()
+    main()

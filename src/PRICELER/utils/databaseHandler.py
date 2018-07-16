@@ -18,7 +18,6 @@ def createTable(conn):
 		print("New Table created")
 	except:
 		print("Using existing table")
-		result=-1
 		
 	return result
 
@@ -63,8 +62,8 @@ def runOperation(operation, userRequest):
             userRequest['latestPrice']=requestPrice(userRequest['url'])
             userRequest['cheapestPrice']=userRequest['latestPrice'] #when adding, there is no cheaper price
             userRequest['dateUpdated']=str(datetime.now().date())
-            print(userRequest)
             c.execute('INSERT INTO userRequests VALUES (?,?,?,?,?)',dictToArray(userRequest))
+            print("User Request added:\n"+str(userRequest))
         except ValueError:
             print("adding request has been cancelled due to bad value")
         except Exception as e:
@@ -74,7 +73,8 @@ def runOperation(operation, userRequest):
         c=conn.cursor()
         try:
             userUrl=[userRequest['userId'],userRequest['url']]
-            c.execute('DELETE userRequests VALUES (?,?,*,*)',userUrl)
+            c.execute('DELETE userRequests WHERE userId=? AND url=?',userUrl)
+            print("User Request deleted:\n"+str(userRequest))
         except Exception as e:
             print("databaseHandler has caused an error when deleting request:\n\t"+str(e))
             result=-1
@@ -90,8 +90,8 @@ def runOperation(operation, userRequest):
 
             #c.execute('UPDATE userRequests SET (?,?,?,?,?)',dictToArray(userRequest))
             c.execute('UPDATE userRequests SET latestPrice=? WHERE userId=? AND url=?',(userRequest['latestPrice'],userRequest['userId'],userRequest['url']))
-            
             data={'state':'nochange','userRequest':userRequest}
+            print("User Request updated:\n"+str(userRequest))
         except ValueError:
             print("adding request has been cancelled due to bad value")
             result=-1
@@ -103,9 +103,9 @@ def runOperation(operation, userRequest):
         data=[]
         try:
             uid = (userRequest['userId'],)
-            c.execute('SELECT * FROM userRequests WHERE userId=?', uid)
-            for row in c.execute('SELECT * FROM userRequests ORDER BY dateUpdated'):
+            for row in c.execute('SELECT * FROM userRequests WHERE userId=? ORDER BY dateUpdated'):
                 data.append(row)
+            print("User Request returned:\n"+str(userRequest))
         except Exception as e:
             print("databaseHandler has caused an error when getting request:\n\t"+str(e))
             result=-1
