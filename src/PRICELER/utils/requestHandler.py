@@ -4,7 +4,7 @@
 import requests
 from lxml import html
 
-ELEMENTIDS=[['amazon','priceblock_ourprice']]
+ELEMENTIDS={'amazon':['priceblock_ourprice','priceblock_dealprice']}
 
 #--------------------------------------------------------------------------------------------
 # Extracts value at element id from given tree
@@ -12,10 +12,23 @@ ELEMENTIDS=[['amazon','priceblock_ourprice']]
 def getValueFromTree(tree, elementId):
     result=0
     try:
-        price=tree.xpath('//span[@id="'+elementId+'"]/text()')
-        price=price[0].split( )
-        price=price[1].split(',')
-        result=price[0]
+        price=0
+        for eId in elementId:
+            print(eId)
+            try:
+                tPrice=tree.xpath('//span[@id="'+eId+'"]/text()')
+                tPrice=tPrice[0].split( )
+                tPrice=tPrice[1].split(',')
+                tPrice=int(tPrice[0])
+                print(tPrice)
+                print(price)
+                if(price==0 or tPrice<price):
+                    price=tPrice
+            except:
+                pass
+        
+        result=price
+        print("res"+str(price))
     except:
         print("Request Handler has caused an error when parsing Tree")
         result=-1
@@ -26,7 +39,7 @@ def getValueFromTree(tree, elementId):
 #--------------------------------------------------------------------------------------------
 def urlParser(url):
     #TODO: Only for amazon yet
-    elementId=ELEMENTIDS[0][1]
+    elementId=ELEMENTIDS['amazon']
     return elementId
 
 #--------------------------------------------------------------------------------------------

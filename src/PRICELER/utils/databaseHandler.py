@@ -13,7 +13,7 @@ def createTable(conn):
 	result=0
 	c = conn.cursor()
 	try:
-		c.execute('''CREATE TABLE userRequests(userId text, url text, dateUpdated text, cheapestPrice real, latestPrice real)''')
+		c.execute('''CREATE TABLE userRequests(userId text, url text, dateAdded text, cheapestPrice real, latestPrice real)''')
 		conn.commit()
 		print("New Table created")
 	except:
@@ -29,11 +29,11 @@ def requestPrice(url):
         return float(price)
 
 def dictToArray(dict):
-    array=[dict['userId'],dict['url'],dict['dateUpdated'],dict['cheapestPrice'],dict['latestPrice']]
+    array=[dict['userId'],dict['url'],dict['dateAdded'],dict['cheapestPrice'],dict['latestPrice']]
     return array
 
 def arrayToDict(array):
-    dict={'userId':array[0],'url':array[1],'dateUpdated':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
+    dict={'userId':array[0],'url':array[1],'dateAdded':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
     return array
 
 
@@ -61,7 +61,7 @@ def runOperation(operation, userRequest):
         try:
             userRequest['latestPrice']=requestPrice(userRequest['url'])
             userRequest['cheapestPrice']=userRequest['latestPrice'] #when adding, there is no cheaper price
-            userRequest['dateUpdated']=str(datetime.now().date())
+            userRequest['dateAdded']=str(datetime.now().date())
             c.execute('INSERT INTO userRequests VALUES (?,?,?,?,?)',dictToArray(userRequest))
             print("User Request added:\n"+str(userRequest))
         except ValueError:
@@ -84,7 +84,7 @@ def runOperation(operation, userRequest):
             userRequest['latestPrice']=requestPrice(userRequest['url'])
             if(userRequest['latestPrice']<userRequest['cheapestPrice']):	#update cheapes price if  latest one is lower
                 userRequest['cheapestPrice']=userRequest['latestPrice'] #latest price is cheapest one
-                userRequest['dateUpdated']=str(datetime.now().date())
+                userRequest['dateAdded']=str(datetime.now().date())
                 data={'state':'updated','userRequest':userRequest}
                 c.execute('UPDATE userRequests SET cheapestPrice=? WHERE userId=? AND url=?',(userRequest['cheapestPrice'],userRequest['userId'],userRequest['url']))
 
@@ -93,7 +93,7 @@ def runOperation(operation, userRequest):
             data={'state':'nochange','userRequest':userRequest}
             print("User Request updated:\n"+str(userRequest))
         except ValueError:
-            print("adding request has been cancelled due to bad value")
+            print("updating request has been cancelled due to bad value")
             result=-1
         except Exception as e:
             print("databaseHandler has caused an error when updating request:\n\t"+str(e))
@@ -103,7 +103,7 @@ def runOperation(operation, userRequest):
         data=[]
         try:
             uid = (userRequest['userId'],)
-            for row in c.execute('SELECT * FROM userRequests WHERE userId=? ORDER BY dateUpdated'):
+            for row in c.execute('SELECT * FROM userRequests WHERE userId=? ORDER BY dateAdded', uid):
                 data.append(row)
             print("User Request returned:\n"+str(userRequest))
         except Exception as e:

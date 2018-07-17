@@ -11,7 +11,7 @@ from utils import databaseHandler as dbH
 
 
 
-POLLING=5	#every 30 minutes
+POLLING=60*30	#every 30 minutes
 
 APITOKEN='508854334:AAGUyoIsXZNoYshyEx7jSBFJuDzKM1d87SY'
 
@@ -23,11 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 def dictToArray(dict):
-    array=[dict['userId'],dict['url'],dict['dateUpdated'],dict['cheapestPrice'],dict['latestPrice']]
+    array=[dict['userId'],dict['url'],dict['dateAdded'],dict['cheapestPrice'],dict['latestPrice']]
     return array
 
 def arrayToDict(array):
-    dict={'userId':array[0],'url':array[1],'dateUpdated':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
+    dict={'userId':array[0],'url':array[1],'dateAdded':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
     return dict
 
 #--------------------------------------------------------------------------------------------
@@ -45,8 +45,8 @@ def requestPoll(bot, job):
         latestPrice=updateRes['data']['userRequest']['latestPrice']
         if(updateRes['data']['state']=='updated'):                        #prints out notification when price is sunc
             bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResArray[3])+' to '+str(latestPrice))
-        else:
-            bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResArray[3])+' to '+str(latestPrice))
+        #else:
+        #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResArray[3])+' to '+str(latestPrice))
 
 #--------------------------------------------------------------------------------------------
 # Starts a Timer thread and adds it to the queue
@@ -66,53 +66,55 @@ def set_timer(bot, update, job_queue, chat_data):
 # adds an Request to the database
 #--------------------------------------------------------------------------------------------
 def addRequest(bot, update, args, chat_data):
+    chat_id = update.message.chat_id
+    try:
+        userRequest={'userId':chat_id,'url':str(args[0])}
+        dbH.runOperation('add',userRequest)
+        update.message.reply_text('Request successfully accepted')
 
-	chat_id = update.message.chat_id
-	try:
-		userRequest={'userId':chat_id,'url':str(args[0])}
-		dbH.runOperation('add',userRequest)
-		update.message.reply_text('Request successfully accepted')
-
-	except (IndexError, ValueError):
-		update.message.reply_text('Usage: /set <url>')
+    except (IndexError, ValueError):
+        update.message.reply_text('Usage: /set <url>')
 
 #--------------------------------------------------------------------------------------------
 # deletes a Request from the database
 #--------------------------------------------------------------------------------------------
 def delRequest(bot, update, args, chat_data):
-	try:
-		userRequest={'userId':chat_id,'url':str(args[0])}
-		dbH.runOperation('del',userRequest)
-		update.message.reply_text('Request successfully deleted!')
+    chat_id = update.message.chat_id
+    try:
+        userRequest={'userId':chat_id,'url':str(args[0])}
+        dbH.runOperation('del',userRequest)
+        update.message.reply_text('Request successfully deleted!')
 
-	except (IndexError, ValueError):
-		update.message.reply_text('Usage: /del <url>')
+    except (IndexError, ValueError):
+        update.message.reply_text('Usage: /del <url>')
 
 #--------------------------------------------------------------------------------------------
 # show list of all Requests in stored for current user
 #--------------------------------------------------------------------------------------------	
 def showRequests(bot, update, chat_data):
+    chat_id = update.message.chat_id
     try:
-        userRequest={'userId':job.context}
+        userRequest={'userId':chat_id}
         getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
-        output="UserId:\t"+str(job.context)+"\n"
+        output="UserId:\t"+str(chat_id)+"\n"
         itemIt=0
         for getResArray in getRes['data']:                              #iterate through the users url to check if update needed
             updateRes=dbH.runOperation('update',arrayToDict(getResArray))
             if(updateRes['result']==-1):
-                break
-            itemIt=itemIt+1
-            output=output+"Item:\t"+str(itemIt)
-            url=updateRes['data']['userRequest']['url']
-            output=output+"\tURL:\t"+str(url)+"\n"
-            dateAdded=updateRes['data']['userRequest']['dateAdded']
-            output=output+"\tDate Addded:\t"+str(dateAdded)+"\n"
-            latestPrice=updateRes['data']['userRequest']['latestPrice']
-            output=output+"\tLatest Price:\t"+str(latestPrice)+"\n"
-            cheapestPrice=updateRes['data']['userRequest']['cheapestPrice']
-            output=output+"\tCheapes Price:\t"+str(cheapestPrice)+"\n"
+                pass
+            else:
+                itemIt=itemIt+1
+                output=output+"Item:\t"+str(itemIt)+"\n"
+                url=updateRes['data']['userRequest']['url']
+                output=output+"\tURL:\t"+str(url)+"\n"
+                dateAdded=updateRes['data']['userRequest']['dateAdded']
+                output=output+"\tDate Addded:\t"+str(dateAdded)+"\n"
+                latestPrice=updateRes['data']['userRequest']['latestPrice']
+                output=output+"\tLatest Price:\t"+str(latestPrice)+"\n"
+                cheapestPrice=updateRes['data']['userRequest']['cheapestPrice']
+                output=output+"\tCheapest Price:\t"+str(cheapestPrice)+"\n"
 
-        bot.send_message(job.context, text=output)
+        update.message.reply_text(output)
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /show <url>')
 
@@ -135,9 +137,9 @@ def stopTimer(bot, update, args, chat_data):
 #--------------------------------------------------------------------------------------------
 def help(bot, update):
     helpText="Priceler helps you to get the best price on amazon\n"
-    helpText=helpText+"\t/add URL/tInput the url to the item priceler should track\n"
-    helpText=helpText+"\t/del URL/tNo need to keep track? Delete unnecessary urls!\n"
-    helpText=helpText+"\t/show/tShows all your added urls\n"
+    helpText=helpText+"\t/add URL\tInput the url to the item priceler should track\n"
+    helpText=helpText+"\t/del URL\tNo need to keep track? Delete unnecessary urls!\n"
+    helpText=helpText+"\t/show\tShows all your added urls\n"
     helpText=helpText+"\t/start\tStart the notification service to get informed when the price has dropped"
     update.message.reply_text(helpText)
     # TODO: Implement
