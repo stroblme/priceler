@@ -13,7 +13,7 @@ def createTable(conn):
 	result=0
 	c = conn.cursor()
 	try:
-		c.execute('''CREATE TABLE userRequests(userId text, url text, dateAdded text, cheapestPrice real, latestPrice real)''')
+		c.execute('''CREATE TABLE userRequests(userId text, title text, url text, dateAdded text, cheapestPrice real, latestPrice real)''')
 		conn.commit()
 		print("New Table created")
 	except:
@@ -21,20 +21,24 @@ def createTable(conn):
 		
 	return result
 
-def requestPrice(url):
-    price=reqH.getPrice(url)
-    if(price==-1):
+def requestData(url):
+    requestRes=reqH.getPrice(url)
+    if(requestRes['result']==-1):
         raise ValueError('Running Request failed due to invalid value')
     else:
-        return float(price)
+        return requestRes['data']
+
+def shortenURL(url):
+    url=reqH.urlParser(url)['url']
+    return url
 
 def dictToArray(dict):
-    array=[dict['userId'],dict['url'],dict['dateAdded'],dict['cheapestPrice'],dict['latestPrice']]
+    array=[dict['userId'],dict['title'],dict['url'],dict['dateAdded'],dict['cheapestPrice'],dict['latestPrice']]
     return array
 
 def arrayToDict(array):
-    dict={'userId':array[0],'url':array[1],'dateAdded':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
-    return array
+    dict={'userId':array[0],'title':array[1],'url':array[2],'dateAdded':array[3],'cheapestPrice':array[4],'latestPrice':array[5]}
+    return dict
 
 
 def runOperation(operation, userRequest):
@@ -59,10 +63,13 @@ def runOperation(operation, userRequest):
     elif(operation=='add'):
         c=conn.cursor()
         try:
-            userRequest['latestPrice']=requestPrice(userRequest['url'])
+            userRequest['url']=shortenURL(userRequest['url'])
+            requestRes=requestData(userRequest['url'])
+            userRequest['latestPrice']=float(requestRes['price']) 
+            userRequest['title']=str(requestRes['title'])
             userRequest['cheapestPrice']=userRequest['latestPrice'] #when adding, there is no cheaper price
             userRequest['dateAdded']=str(datetime.now().date())
-            c.execute('INSERT INTO userRequests VALUES (?,?,?,?,?)',dictToArray(userRequest))
+            c.execute('INSERT INTO userRequests VALUES (?,?,?,?,?,?)',dictToArray(userRequest))
             print("User Request added:\n"+str(userRequest))
         except ValueError:
             print("adding request has been cancelled due to bad value")
@@ -72,8 +79,8 @@ def runOperation(operation, userRequest):
     elif(operation=='del'):
         c=conn.cursor()
         try:
-            userUrl=[userRequest['userId'],userRequest['url']]
-            c.execute('DELETE userRequests WHERE userId=? AND url=?',userUrl)
+            userRequest['url']=shortenURL(userRequest['url'])
+            c.execute('DELETE FROM userRequests WHERE userId=? AND url=?',(userRequest['userId'],userRequest['url']))
             print("User Request deleted:\n"+str(userRequest))
         except Exception as e:
             print("databaseHandler has caused an error when deleting request:\n\t"+str(e))
@@ -81,7 +88,9 @@ def runOperation(operation, userRequest):
     elif(operation=='update'):
         c=conn.cursor()
         try:
-            userRequest['latestPrice']=requestPrice(userRequest['url'])
+            requestRes=requestData(userRequest['url'])
+            userRequest['latestPrice']=float(requestRes['price']) 
+
             if(userRequest['latestPrice']<userRequest['cheapestPrice']):	#update cheapes price if  latest one is lower
                 userRequest['cheapestPrice']=userRequest['latestPrice'] #latest price is cheapest one
                 userRequest['dateAdded']=str(datetime.now().date())
@@ -104,7 +113,7 @@ def runOperation(operation, userRequest):
         try:
             uid = (userRequest['userId'],)
             for row in c.execute('SELECT * FROM userRequests WHERE userId=? ORDER BY dateAdded', uid):
-                data.append(row)
+                data.append(arrayToDict(row))
             print("User Request returned:\n"+str(userRequest))
         except Exception as e:
             print("databaseHandler has caused an error when getting request:\n\t"+str(e))

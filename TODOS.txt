@@ -2,23 +2,32 @@
 (-) Not Important Issue
 (x) Implemented but not tested
 x Implemented and tested
+% Cancelled
 --------------------------------------------
 
 
 
 Feature Requests:
 
-- personal time interval for notification
+(-) personal time interval for notification
 - pretty messages (https://pypi.org/project/emoji/)
 x stat functionallity
 - add queue for database access
 x implement help
-
+x implement deletion of unnecessary personalized url parts
+% implement Information that showing list may take some time
+x implement partwise printing of items
+- handle errors through telegram when dataBase Handler caused error
+x add title information when showing items
+- remove item enumerator
+(-) implement heuristic for minimal user query delay
 
 Bugs:
 
 x user urls get mixed up
 - add exception filter when creating table
-- update help since /t is visible
-- check del functionallity
+(x) update help since /t is visible
+x test del functionallity
 x id priceblock_dealprice wird nicht detektiert
+- tidy up sql dict/ array convention
+x parse title

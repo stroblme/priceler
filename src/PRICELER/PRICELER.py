@@ -1,7 +1,7 @@
 
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import sys, getopt
 
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler
@@ -13,22 +13,13 @@ from utils import databaseHandler as dbH
 
 POLLING=60*30	#every 30 minutes
 
-APITOKEN='508854334:AAGUyoIsXZNoYshyEx7jSBFJuDzKM1d87SY'
+
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
-
-
-def dictToArray(dict):
-    array=[dict['userId'],dict['url'],dict['dateAdded'],dict['cheapestPrice'],dict['latestPrice']]
-    return array
-
-def arrayToDict(array):
-    dict={'userId':array[0],'url':array[1],'dateAdded':array[2],'cheapestPrice':array[3],'latestPrice':array[4]}
-    return dict
 
 #--------------------------------------------------------------------------------------------
 # Triggers the Request handler, when executed
@@ -37,16 +28,16 @@ def requestPoll(bot, job):
     userRequest={'userId':job.context}
     getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
 
-    for getResArray in getRes['data']:                              #iterate through the users url to check if update needed
-        updateRes=dbH.runOperation('update',arrayToDict(getResArray))
+    for getResList in getRes['data']:                              #iterate through the users url to check if update needed
+        updateRes=dbH.runOperation('update',getResList)
         if(updateRes['result']==-1):
             break
         url=updateRes['data']['userRequest']['url']
         latestPrice=updateRes['data']['userRequest']['latestPrice']
         if(updateRes['data']['state']=='updated'):                        #prints out notification when price is sunc
-            bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResArray[3])+' to '+str(latestPrice))
+            bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResList[3])+' to '+str(latestPrice))
         #else:
-        #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResArray[3])+' to '+str(latestPrice))
+        #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResList[3])+' to '+str(latestPrice))
 
 #--------------------------------------------------------------------------------------------
 # Starts a Timer thread and adds it to the queue
@@ -98,13 +89,17 @@ def showRequests(bot, update, chat_data):
         getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
         output="UserId:\t"+str(chat_id)+"\n"
         itemIt=0
-        for getResArray in getRes['data']:                              #iterate through the users url to check if update needed
-            updateRes=dbH.runOperation('update',arrayToDict(getResArray))
+        update.message.reply_text(output)
+        output=""
+        for getResList in getRes['data']:                              #iterate through the users url to check if update needed
+            updateRes=dbH.runOperation('update',getResList)
             if(updateRes['result']==-1):
                 pass
             else:
                 itemIt=itemIt+1
                 output=output+"Item:\t"+str(itemIt)+"\n"
+                title=updateRes['data']['userRequest']['title']
+                output=output+"\tTitle:\t"+str(title)+"\n"
                 url=updateRes['data']['userRequest']['url']
                 output=output+"\tURL:\t"+str(url)+"\n"
                 dateAdded=updateRes['data']['userRequest']['dateAdded']
@@ -114,7 +109,8 @@ def showRequests(bot, update, chat_data):
                 cheapestPrice=updateRes['data']['userRequest']['cheapestPrice']
                 output=output+"\tCheapest Price:\t"+str(cheapestPrice)+"\n"
 
-        update.message.reply_text(output)
+                update.message.reply_text(output)
+                output=""
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /show <url>')
 
@@ -159,12 +155,28 @@ def error(bot, update, error):
 #--------------------------------------------------------------------------------------------
 # Main entry point
 #--------------------------------------------------------------------------------------------
-def main():
+def main(argv):
+    apiToken=""
+    try:
+        opts, args = getopt.getopt(argv,"t:",["apiToken="])
+    except getopt.GetoptError:
+        print("PRICELER.py -t <apiToken>")
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print("PRICELER.py -t <apiToken>")
+            sys.exit()
+        elif opt in ("-t", "--apiToken"):
+            apiToken=str(arg)
+
+    if(apiToken==""):
+        sys.exit()
+
     """Start the bot."""
     dbH.runOperation('open', None)
 
     # Create the EventHandler and pass it your bot's token.
-    updater = Updater(APITOKEN)
+    updater = Updater(apiToken)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
@@ -175,11 +187,13 @@ def main():
 								    set_timer,
 								    pass_job_queue=1,
 								    pass_chat_data=1))
-    dp.add_handler(CommandHandler("add", addRequest, 
+    dp.add_handler(CommandHandler("add", 
+                                    addRequest, 
 								    pass_args=1, 
 								    pass_chat_data=1))
     dp.add_handler(CommandHandler("del", 
 								    delRequest, 
+                                    pass_args=1, 
 								    pass_chat_data=1))
     dp.add_handler(CommandHandler("show", 
 								    showRequests, 
@@ -205,4 +219,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
