@@ -10,7 +10,7 @@ x Implemented and tested
 Feature Requests:
 
 (-) personal time interval for notification
-- pretty messages (https://pypi.org/project/emoji/)
+(-) pretty messages (https://pypi.org/project/emoji/)
 x stat functionallity
 - add queue for database access
 x implement help
@@ -19,7 +19,7 @@ x implement deletion of unnecessary personalized url parts
 x implement partwise printing of items
 - handle errors through telegram when dataBase Handler caused error
 x add title information when showing items
-- remove item enumerator
+x remove item enumerator
 (-) implement heuristic for minimal user query delay
 
 Bugs:
@@ -31,5 +31,5 @@ x test del functionallity
 x id priceblock_dealprice wird nicht detektiert
 - tidy up sql dict/ array convention
 x parse title
-- hide api token and implement parameter
-- cheapest price 0 is taken and hold after unsuccesful request
+x hide api token and implement parameter
+x cheapest price 0 is taken and hold after unsuccesful request
