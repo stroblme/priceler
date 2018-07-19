@@ -29,21 +29,23 @@ def requestPoll(bot, job):
     getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
 
     for getResList in getRes['data']:                              #iterate through the users url to check if update needed
-        updateRes=dbH.runOperation('update',getResList)
-        if(updateRes['result']==-1):
-            break
-        url=updateRes['data']['userRequest']['url']
-        latestPrice=updateRes['data']['userRequest']['latestPrice']
-        if(updateRes['data']['state']=='updated'):                        #prints out notification when price is sunc
-            bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResList[3])+' to '+str(latestPrice))
-        #else:
-        #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResList[3])+' to '+str(latestPrice))
-
+        try:
+            updateRes=dbH.runOperation('update',getResList)
+            if(updateRes['result']==-1):
+                break
+            url=updateRes['data']['userRequest']['url']
+            latestPrice=updateRes['data']['userRequest']['latestPrice']
+            if(updateRes['data']['state']=='updated'):                        #prints out notification when price is sunc
+                bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResList[3])+' to '+str(latestPrice))
+            #else:
+            #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResList[3])+' to '+str(latestPrice))
+        except:
+            print("update Request cancelled")
 #--------------------------------------------------------------------------------------------
 # Starts a Timer thread and adds it to the queue
 #--------------------------------------------------------------------------------------------
 def set_timer(bot, update, job_queue, chat_data):
-	update.message.reply_text('Priceler\nIn Development! Data may get lost!\nPlease use /add, /del')
+	update.message.reply_text('Priceler\nIn Development! Data may get lost! See /help for further information')
 	
 	chat_id = update.message.chat_id
 
@@ -87,8 +89,7 @@ def showRequests(bot, update, chat_data):
     try:
         userRequest={'userId':chat_id}
         getRes=dbH.runOperation('get',userRequest)       #get a list of the urls of the current user
-        output="UserId:\t"+str(chat_id)+"\n"
-        itemIt=0
+        output="UserId:\t"+str(chat_id)+"\nUpdating items.. This may take some time..\n"
         update.message.reply_text(output)
         output=""
         for getResList in getRes['data']:                              #iterate through the users url to check if update needed
@@ -96,10 +97,8 @@ def showRequests(bot, update, chat_data):
             if(updateRes['result']==-1):
                 pass
             else:
-                itemIt=itemIt+1
-                output=output+"Item:\t"+str(itemIt)+"\n"
                 title=updateRes['data']['userRequest']['title']
-                output=output+"\tTitle:\t"+str(title)+"\n"
+                output=output+str(title)+"\n\n"
                 url=updateRes['data']['userRequest']['url']
                 output=output+"\tURL:\t"+str(url)+"\n"
                 dateAdded=updateRes['data']['userRequest']['dateAdded']

@@ -32,8 +32,10 @@ def getValueFromTree(tree, elementId):
                     title=title.replace('    ','')  #There shouldn't be laarge spaces
                 except:
                     pass
+        
         data={'price':price,'title':title}
-        result=1
+        if(price==0):
+            result=-1
     except:
         print("Request Handler has caused an error when parsing Tree")
         result=-1

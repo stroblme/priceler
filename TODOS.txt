@@ -31,3 +31,5 @@ x test del functionallity
 x id priceblock_dealprice wird nicht detektiert
 - tidy up sql dict/ array convention
 x parse title
+- hide api token and implement parameter
+- cheapest price 0 is taken and hold after unsuccesful request
