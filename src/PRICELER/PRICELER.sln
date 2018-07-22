@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "PRICELER", "PRICELER.pyproj", "{F6873478-59A7-4680-8DEE-9B6078D16781}"
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "priceler", "priceler.pyproj", "{F6873478-59A7-4680-8DEE-9B6078D16781}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

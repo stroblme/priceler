@@ -21,6 +21,8 @@ x implement partwise printing of items
 x add title information when showing items
 x remove item enumerator
 (-) implement heuristic for minimal user query delay
+x remove dependecies from README.md in seperate folder
+
 
 Bugs:
 

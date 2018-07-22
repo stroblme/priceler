@@ -3,14 +3,16 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>f6873478-59a7-4680-8dee-9b6078d16781</ProjectGuid>
-    <ProjectHome>.</ProjectHome>
-    <StartupFile>PRICELER.py</StartupFile>
+    <ProjectHome>
+    </ProjectHome>
+    <StartupFile>priceler.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>PRICELER</Name>
+    <Name>priceler</Name>
     <RootNamespace>PRICELER</RootNamespace>
+    <IsWindowsApplication>False</IsWindowsApplication>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -27,7 +29,7 @@
     <Compile Include="utils\databaseHandler.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PRICELER.py" />
+    <Compile Include="priceler.py" />
     <Compile Include="utils\requestHandler.py">
       <SubType>Code</SubType>
     </Compile>
