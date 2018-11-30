@@ -10,9 +10,7 @@ import logging
 from utils import databaseHandler as dbH
 
 
-
 POLLING=60*30	#every 30 minutes
-
 
 
 # Enable logging
@@ -32,10 +30,12 @@ def requestPoll(bot, job):
         try:
             updateRes=dbH.runOperation('update',getResList)
             if(updateRes['result']==-1):
+                print("Error occured when updating Request")
                 break
-            url=updateRes['data']['userRequest']['url']
-            latestPrice=updateRes['data']['userRequest']['latestPrice']
-            if(updateRes['data']['state']=='updated'):                        #prints out notification when price is sunc
+            url=updateRes['data']['userRequest']['url'] #Get url from returned data
+            latestPrice=updateRes['data']['userRequest']['latestPrice'] #Get latest price from returned data
+
+            if(updateRes['data']['state']=='updated'):          #prints out notification when price is sunc
                 bot.send_message(job.context, text='Item '+url+' has been updated from '+str(getResList[3])+' to '+str(latestPrice))
             #else:
             #    bot.send_message(job.context, text='Item '+url+' has not been updated from '+str(getResList[3])+' to '+str(latestPrice))
@@ -62,8 +62,11 @@ def addRequest(bot, update, args, chat_data):
     chat_id = update.message.chat_id
     try:
         userRequest={'userId':chat_id,'url':str(args[0])}
-        dbH.runOperation('add',userRequest)
-        update.message.reply_text('Request successfully accepted')
+        
+        if(dbH.runOperation('add',userRequest) == -1)
+            update.message.reply_text('Error occurred when adding Request')
+        else
+            update.message.reply_text('Request successfully accepted')
 
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /set <url>')

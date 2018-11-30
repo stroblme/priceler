@@ -20,6 +20,7 @@ def getValueFromTree(tree, elementId):
                     tPrice=tree.xpath('//span[@id="'+eId+'"]/text()')
                     tPrice=tPrice[0].split( )
                     tPrice=tPrice[1].split(',')
+                    print(tPrice)
                     tPrice=float(tPrice[0])
                     if(price==0 or tPrice<price):
                         price=tPrice

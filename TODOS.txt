@@ -35,3 +35,5 @@ x id priceblock_dealprice wird nicht detektiert
 x parse title
 x hide api token and implement parameter
 x cheapest price 0 is taken and hold after unsuccesful request
+- add docu for api token argument and implent hind if not provided
+- prices >1.000€ won't be added but with 1,0 

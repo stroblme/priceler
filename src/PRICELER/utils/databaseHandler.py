@@ -73,6 +73,7 @@ def runOperation(operation, userRequest):
             print("User Request added:\n"+str(userRequest))
         except ValueError:
             print("adding request has been cancelled due to bad value")
+            result = -1
         except Exception as e:
             print("databaseHandler has caused an error when adding request:\n\t"+str(e))
             result=-1
@@ -94,13 +95,13 @@ def runOperation(operation, userRequest):
             if(userRequest['latestPrice']<userRequest['cheapestPrice']):	#update cheapes price if  latest one is lower
                 userRequest['cheapestPrice']=userRequest['latestPrice'] #latest price is cheapest one
                 userRequest['dateAdded']=str(datetime.now().date())
-                data={'state':'updated','userRequest':userRequest}
+                data={'state':'updated','userRequest':userRequest}  #set "updated" flag
                 c.execute('UPDATE userRequests SET cheapestPrice=? WHERE userId=? AND url=?',(userRequest['cheapestPrice'],userRequest['userId'],userRequest['url']))
-
-            #c.execute('UPDATE userRequests SET (?,?,?,?,?)',dictToArray(userRequest))
-            c.execute('UPDATE userRequests SET latestPrice=? WHERE userId=? AND url=?',(userRequest['latestPrice'],userRequest['userId'],userRequest['url']))
-            data={'state':'nochange','userRequest':userRequest}
-            print("User Request updated:\n"+str(userRequest))
+            else:
+                #c.execute('UPDATE userRequests SET (?,?,?,?,?)',dictToArray(userRequest))
+                c.execute('UPDATE userRequests SET latestPrice=? WHERE userId=? AND url=?',(userRequest['latestPrice'],userRequest['userId'],userRequest['url']))
+                data={'state':'nochange','userRequest':userRequest}
+                print("User Request updated:\n"+str(userRequest))
         except ValueError:
             print("updating request has been cancelled due to bad value")
             result=-1
