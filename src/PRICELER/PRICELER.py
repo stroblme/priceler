@@ -63,9 +63,9 @@ def addRequest(bot, update, args, chat_data):
     try:
         userRequest={'userId':chat_id,'url':str(args[0])}
         
-        if(dbH.runOperation('add',userRequest) == -1)
+        if(dbH.runOperation('add',userRequest) == -1):
             update.message.reply_text('Error occurred when adding Request')
-        else
+        else:
             update.message.reply_text('Request successfully accepted')
 
     except (IndexError, ValueError):
@@ -172,6 +172,7 @@ def main(argv):
             apiToken=str(arg)
 
     if(apiToken==""):
+        print("No API Token provided")
         sys.exit()
 
     """Start the bot."""
